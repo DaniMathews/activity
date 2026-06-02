@@ -10,7 +10,10 @@ var app = builder.Build();
 bool TryGetTenant(HttpRequest request, out string tenantId)
 {
     tenantId = request.Headers["X-Tenant-Id"].FirstOrDefault() ?? "";
-    return !string.IsNullOrWhiteSpace(tenantId);
+    if (string.IsNullOrWhiteSpace(tenantId)) return false;
+    // Reject tenant IDs that contain anything other than safe slug characters
+    // to prevent header-injection values being stored or logged.
+    return System.Text.RegularExpressions.Regex.IsMatch(tenantId, @"^[a-zA-Z0-9_-]{1,64}$");
 }
 
 string[] validPriorities = ["Low", "Medium", "High", "Urgent"];
@@ -64,6 +67,12 @@ app.MapPost("/tickets", (HttpRequest request, List<Ticket> tickets, CreateTicket
 
     if (string.IsNullOrWhiteSpace(body.Subject))
         return Results.BadRequest("Subject is required");
+
+    if (body.Subject.Length > 200)
+        return Results.BadRequest("Subject must be 200 characters or fewer");
+
+    if (body.Description is { Length: > 2000 })
+        return Results.BadRequest("Description must be 2000 characters or fewer");
 
     if (!validPriorities.Contains(body.Priority))
         return Results.BadRequest("Priority must be Low, Medium, High, or Urgent");
