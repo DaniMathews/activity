@@ -1,6 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<List<Ticket>>(SeedData.CreateTickets());
 builder.Services.AddSingleton<List<CannedResponse>>(SeedData.CreateCannedResponses());
+builder.Services.AddSingleton<List<TicketComment>>([]);
 
 var app = builder.Build();
 
@@ -114,6 +115,42 @@ app.MapPost("/tickets", (HttpRequest request, List<Ticket> tickets, CreateTicket
     return Results.Created($"/tickets/{ticket.Id}", ticket);
 });
 
+// POST /tickets/{id}/comments/from-template  — add a comment from a canned response for the calling tenant
+app.MapPost("/tickets/{id:guid}/comments/from-template", (
+    Guid id,
+    HttpRequest request,
+    List<Ticket> tickets,
+    List<CannedResponse> cannedResponses,
+    List<TicketComment> comments,
+    CreateCommentFromTemplateRequest body) =>
+{
+    if (!TryGetTenant(request, out var tenantId))
+        return Results.BadRequest("X-Tenant-Id header is required");
+
+    if (body.CannedResponseId == Guid.Empty)
+        return Results.BadRequest("CannedResponseId is required");
+
+    var ticket = tickets.FirstOrDefault(t => t.Id == id && t.TenantId == tenantId);
+    if (ticket is null)
+        return Results.NotFound();
+
+    var cannedResponse = cannedResponses.FirstOrDefault(r => r.Id == body.CannedResponseId && r.TenantId == tenantId);
+    if (cannedResponse is null)
+        return Results.NotFound();
+
+    var comment = new TicketComment
+    {
+        Id          = Guid.NewGuid(),
+        TicketId    = ticket.Id,
+        TenantId    = tenantId,
+        Body        = cannedResponse.Body,
+        CreatedAt   = DateTime.UtcNow,
+    };
+
+    comments.Add(comment);
+    return Results.Created($"/tickets/{ticket.Id}/comments/{comment.Id}", comment);
+});
+
 app.Run();
 
 // ---------------------------------------------------------------------------
@@ -121,3 +158,6 @@ app.Run();
 // ---------------------------------------------------------------------------
 
 record CreateTicketRequest(string Subject, string? Description, string Priority, string? Plan);
+record CreateCommentFromTemplateRequest(Guid CannedResponseId);
+
+public partial class Program { }
