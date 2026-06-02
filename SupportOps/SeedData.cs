@@ -1,5 +1,62 @@
 public static class SeedData
 {
+    public static List<CannedResponse> CreateCannedResponses()
+    {
+        var now = DateTime.UtcNow;
+
+        return
+        [
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "acme",
+                Title     = "Escalation in Progress",
+                Body      = "Thanks for your patience — we have escalated this issue to our engineering team and will follow up shortly.",
+                CreatedAt = now.AddDays(-2),
+            },
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "acme",
+                Title     = "Need More Details",
+                Body      = "Could you share the exact steps to reproduce this issue and include any error messages you see?",
+                CreatedAt = now.AddDays(-3),
+            },
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "acme",
+                Title     = "Issue Resolved",
+                Body      = "We have applied a fix and confirmed the issue is resolved. Please let us know if you still see any problems.",
+                CreatedAt = now.AddDays(-1),
+            },
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "globex",
+                Title     = "Escalation in Progress",
+                Body      = "Thanks for your patience — we have escalated this issue to our engineering team and will follow up shortly.",
+                CreatedAt = now.AddDays(-2),
+            },
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "globex",
+                Title     = "Need More Details",
+                Body      = "Could you share the exact steps to reproduce this issue and include any error messages you see?",
+                CreatedAt = now.AddDays(-3),
+            },
+            new CannedResponse
+            {
+                Id        = Guid.NewGuid(),
+                TenantId  = "globex",
+                Title     = "Issue Resolved",
+                Body      = "We have applied a fix and confirmed the issue is resolved. Please let us know if you still see any problems.",
+                CreatedAt = now.AddDays(-1),
+            },
+        ];
+    }
+
     public static List<Ticket> CreateTickets()
     {
         var now = DateTime.UtcNow;
