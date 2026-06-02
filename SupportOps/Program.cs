@@ -1,5 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<List<Ticket>>(SeedData.CreateTickets());
+builder.Services.AddSingleton<List<CannedResponse>>(SeedData.CreateCannedResponses());
 
 var app = builder.Build();
 
@@ -33,6 +34,20 @@ app.MapGet("/tickets", (HttpRequest request, List<Ticket> tickets) =>
         return Results.BadRequest("X-Tenant-Id header is required");
 
     var result = tickets.Where(t => t.TenantId == tenantId).ToList();
+    return Results.Ok(result);
+});
+
+// GET /canned-responses  — returns only the calling tenant's canned responses sorted by title
+app.MapGet("/canned-responses", (HttpRequest request, List<CannedResponse> cannedResponses) =>
+{
+    if (!TryGetTenant(request, out var tenantId))
+        return Results.BadRequest("X-Tenant-Id header is required");
+
+    var result = cannedResponses
+        .Where(r => r.TenantId == tenantId)
+        .OrderBy(r => r.Title)
+        .ToList();
+
     return Results.Ok(result);
 });
 
